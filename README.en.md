@@ -91,7 +91,7 @@ Copy the entire `dist/` folder to any Windows PC and run `airstream.exe`.
 ## Known Limitations
 
 - Audio latency of ~3-5 seconds (due to iOS `<audio>` tag internal buffering)
-- Video sync may be off when used alongside video playback
+- Audio/video sync is not supported for web video playback (e.g. YouTube)
 - Only works within the same WiFi LAN
 
 ## License
