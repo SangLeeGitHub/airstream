@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>AirStream</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  .container {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+  .subtitle {
+    color: #888;
+    font-size: 14px;
+    margin-bottom: 40px;
+  }
+  #startBtn {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    border: 3px solid #333;
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 40px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #startBtn:active { transform: scale(0.95); }
+  #startBtn.connected {
+    border-color: #00c853;
+    box-shadow: 0 0 30px rgba(0, 200, 83, 0.2);
+  }
+  #startBtn.connecting {
+    border-color: #ff9800;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 10px rgba(255, 152, 0, 0.2); }
+    50% { box-shadow: 0 0 30px rgba(255, 152, 0, 0.4); }
+  }
+  .status {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 30px;
+    min-height: 20px;
+  }
+  .status.connected { color: #00c853; }
+  .status.error { color: #ff5252; }
+  .volume-section { margin-bottom: 30px; }
+  .volume-label {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+  }
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #333;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+  }
+  .stats {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.8;
+  }
+  .hint {
+    font-size: 11px;
+    color: #444;
+    margin-top: 20px;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>AirStream</h1>
+  <p class="subtitle">WiFi Audio Receiver</p>
+
+  <button id="startBtn" onclick="toggleAudio()">시작</button>
+
+  <div class="status" id="status">탭하여 시작</div>
+
+  <div class="volume-section">
+    <div class="volume-label">
+      <span>볼륨</span>
+      <span id="volumeValue">100%</span>
+    </div>
+    <input type="range" id="volume" min="0" max="100" value="100" oninput="setVolume(this.value)">
+  </div>
+
+  <div class="stats" id="stats"></div>
+  <div class="hint" id="hint"></div>
+</div>
+
+<!-- Hidden audio element for HTTP stream — iOS plays this in background natively -->
+<audio id="audioPlayer" preload="none"></audio>
+
+<script>
+const audioEl = document.getElementById('audioPlayer');
+const statusEl = document.getElementById('status');
+const startBtn = document.getElementById('startBtn');
+const statsEl = document.getElementById('stats');
+const hintEl = document.getElementById('hint');
+
+let isStarted = false;
+let startTime = 0;
+let wakeLock = null;
+
+function setStatus(text, cls) {
+  statusEl.textContent = text;
+  statusEl.className = 'status ' + (cls || '');
+}
+
+function toggleAudio() {
+  if (isStarted) {
+    stopAudio();
+  } else {
+    startAudio();
+  }
+}
+
+function startAudio() {
+  setStatus('연결 중...', '');
+  startBtn.className = 'connecting';
+  startBtn.textContent = '연결 중';
+
+  // Use HTTP stream — iOS Safari keeps <audio> playing in background
+  const streamUrl = window.location.origin + '/stream?t=' + Date.now();
+  audioEl.src = streamUrl;
+  audioEl.volume = document.getElementById('volume').value / 100;
+
+  // Wait for enough data to be buffered before playing
+  function tryPlay() {
+    audioEl.play().then(() => {
+      isStarted = true;
+      startTime = Date.now();
+      startBtn.className = 'connected';
+      startBtn.textContent = '정지';
+      setStatus('재생 중', 'connected');
+      hintEl.innerHTML = '백그라운드 재생 지원<br>영상 싱크: 위 지연시간만큼 영상을 일시정지 후 재시작';
+      updateStats();
+      startLatencyMeasurement();
+      enableWakeLock();
+    }).catch((err) => {
+      console.error('Play error:', err);
+      setStatus('오류: ' + err.message, 'error');
+      startBtn.className = '';
+      startBtn.textContent = '시작';
+    });
+  }
+
+  // Listen for canplay event to ensure data is ready
+  audioEl.addEventListener('canplay', tryPlay, { once: true });
+  audioEl.load();
+  // Fallback: if canplay doesn't fire in 3s, try anyway
+  setTimeout(() => {
+    if (!isStarted) {
+      audioEl.removeEventListener('canplay', tryPlay);
+      tryPlay();
+    }
+  }, 3000);
+}
+
+function stopAudio() {
+  audioEl.pause();
+  audioEl.removeAttribute('src');
+  audioEl.load(); // release connection
+
+  isStarted = false;
+  startBtn.className = '';
+  startBtn.textContent = '시작';
+  setStatus('탭하여 시작', '');
+  statsEl.textContent = '';
+  hintEl.textContent = '';
+  stopLatencyMeasurement();
+  disableWakeLock();
+}
+
+function setVolume(value) {
+  document.getElementById('volumeValue').textContent = value + '%';
+  audioEl.volume = value / 100;
+}
+
+// --- Wake Lock ---
+async function enableWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch {}
+}
+
+function disableWakeLock() {
+  if (wakeLock) {
+    wakeLock.release();
+    wakeLock = null;
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && isStarted) {
+    enableWakeLock();
+  }
+});
+
+// --- Latency Measurement ---
+let latencyMs = 0;
+let latencyInterval = null;
+
+function measureLatency() {
+  // Measure actual audio buffer: how far ahead the player has buffered vs current playback
+  try {
+    if (audioEl.buffered.length > 0) {
+      const bufferedEnd = audioEl.buffered.end(audioEl.buffered.length - 1);
+      const current = audioEl.currentTime;
+      const bufferAheadMs = Math.round((bufferedEnd - current) * 1000);
+      // Total latency = encoder delay (~100ms) + network (~50ms) + player buffer ahead
+      latencyMs = bufferAheadMs + 150;
+    }
+  } catch {}
+}
+
+function startLatencyMeasurement() {
+  measureLatency();
+  latencyInterval = setInterval(measureLatency, 1000);
+}
+
+function stopLatencyMeasurement() {
+  if (latencyInterval) { clearInterval(latencyInterval); latencyInterval = null; }
+  latencyMs = 0;
+}
+
+// --- Stats ---
+function updateStats() {
+  if (!isStarted) return;
+  const elapsed = (Date.now() - startTime) / 1000;
+  const mins = Math.floor(elapsed / 60);
+  const secs = Math.floor(elapsed % 60);
+  const time = mins + ':' + secs.toString().padStart(2, '0');
+  let latencyText = '지연: 측정 중...';
+  if (latencyMs > 0) {
+    const sec = (latencyMs / 1000).toFixed(1);
+    latencyText = '지연: ~' + sec + '초 (' + latencyMs + 'ms)';
+  }
+  statsEl.innerHTML = 'MP3 128kbps / 48kHz Stereo<br>' + time + '<br>' + latencyText;
+  requestAnimationFrame(updateStats);
+}
+
+// Handle audio errors — auto reconnect
+audioEl.addEventListener('error', () => {
+  if (isStarted) {
+    setStatus('재연결 중...', '');
+    startBtn.className = 'connecting';
+    startBtn.textContent = '재연결';
+    setTimeout(() => {
+      if (isStarted) {
+        audioEl.src = window.location.origin + '/stream?t=' + Date.now();
+        audioEl.play().then(() => {
+          startBtn.className = 'connected';
+          startBtn.textContent = '정지';
+          setStatus('재생 중', 'connected');
+        }).catch(() => {});
+      }
+    }, 2000);
+  }
+});
+</script>
+</body>
+</html>
