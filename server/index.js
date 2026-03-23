@@ -98,15 +98,21 @@ async function main() {
     capture.start();
   });
 
+  let shuttingDown = false;
   function shutdown() {
+    if (shuttingDown) return;
+    shuttingDown = true;
     console.log('\n[Server] Shutting down...');
     capture.stop();
     for (const res of streamClients) { try { res.end(); } catch {} }
     server.close(() => process.exit(0));
+    // Force exit after 3 seconds if graceful shutdown hangs
+    setTimeout(() => process.exit(0), 3000);
   }
 
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
+  process.on('exit', () => capture.stop());
 }
 
 main().catch((err) => {

@@ -5,8 +5,9 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
+    "stop": "taskkill /F /IM ffmpeg.exe 2>nul & taskkill /F /IM wasapi-capture.exe 2>nul & for /f \"tokens=5\" %a in ('netstat -ano ^| findstr :3000 ^| findstr LISTENING') do taskkill /F /PID %a 2>nul",
     "devices": "node server/utils/device-list.js",
-    "build": "pkg server/index.js --targets node18-win-x64 --output dist/airstream.exe"
+    "build": "node scripts/build.js"
   },
   "pkg": {
     "scripts": [

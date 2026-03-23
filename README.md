@@ -52,24 +52,15 @@ npm install
 npm run build
 ```
 
-`dist/` 폴더에 다음 파일이 생성됩니다:
+`dist/` 폴더에 다음 파일이 자동 생성됩니다:
 
 ```
 dist/
 ├── airstream.exe        # 서버 실행 파일
-├── wasapi-capture.exe   # 오디오 캡처 (자동 포함)
-├── ffmpeg.exe           # 별도 복사 필요
+├── wasapi-capture.exe   # 오디오 캡처
+├── ffmpeg.exe           # MP3 인코더
 └── client/
-    └── index.html       # 웹 클라이언트 (별도 복사 필요)
-```
-
-빌드 후 추가 작업:
-```bash
-# client 폴더 복사
-cp -r client dist/
-
-# ffmpeg.exe 복사 (ffmpeg이 PATH에 있는 경우)
-cp $(which ffmpeg) dist/
+    └── index.html       # 웹 클라이언트
 ```
 
 `dist/` 폴더를 통째로 다른 PC에 복사하고 `airstream.exe`를 실행하면 됩니다.

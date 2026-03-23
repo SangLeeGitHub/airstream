@@ -113,14 +113,20 @@ class AudioCapture extends EventEmitter {
 
   stop() {
     this.isCapturing = false;
-    if (this.captureProc) {
-      try { this.captureProc.kill(); } catch {}
-      this.captureProc = null;
-    }
-    if (this.encoderProc) {
-      try { this.encoderProc.kill(); } catch {}
-      this.encoderProc = null;
-    }
+    // On Windows, child.kill() may not kill the process tree.
+    // Use taskkill /T /F to force-kill the entire process tree.
+    const kill = (proc) => {
+      if (!proc || !proc.pid) return;
+      try {
+        spawn('taskkill', ['/T', '/F', '/PID', String(proc.pid)], { stdio: 'ignore' });
+      } catch {
+        try { proc.kill(); } catch {}
+      }
+    };
+    kill(this.captureProc);
+    kill(this.encoderProc);
+    this.captureProc = null;
+    this.encoderProc = null;
     console.log('[Audio] Capture stopped');
   }
 

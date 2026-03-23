@@ -205,5 +205,6 @@ class WasapiCapture
 }
 "@
 
-Add-Type -Language CSharp -OutputAssembly "c:\Users\lees3\source\AudioServer\server\utils\wasapi-capture.exe" -OutputType ConsoleApplication -TypeDefinition $code
+$outPath = Join-Path $PSScriptRoot "server\utils\wasapi-capture.exe"
+Add-Type -Language CSharp -OutputAssembly $outPath -OutputType ConsoleApplication -TypeDefinition $code
 Write-Host "Build complete"

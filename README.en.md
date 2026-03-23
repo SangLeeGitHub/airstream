@@ -52,24 +52,15 @@ npm install
 npm run build
 ```
 
-The following files are generated in the `dist/` folder:
+The following files are automatically generated in the `dist/` folder:
 
 ```
 dist/
 ├── airstream.exe        # Server executable
-├── wasapi-capture.exe   # Audio capture (included automatically)
-├── ffmpeg.exe           # Copy manually
+├── wasapi-capture.exe   # Audio capture
+├── ffmpeg.exe           # MP3 encoder
 └── client/
-    └── index.html       # Web client (copy manually)
-```
-
-After build:
-```bash
-# Copy client folder
-cp -r client dist/
-
-# Copy ffmpeg.exe (if ffmpeg is in PATH)
-cp $(which ffmpeg) dist/
+    └── index.html       # Web client
 ```
 
 Copy the entire `dist/` folder to any Windows PC and run `airstream.exe`.
