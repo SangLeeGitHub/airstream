@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    width: 260px;
+    padding: 16px;
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+    color: #222;
+  }
+  h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  input[type="number"] {
+    width: 70px;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .unit { color: #666; }
+  button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    background: #1a73e8;
+  }
+  button:hover { background: #1557b0; }
+  button.active { background: #d93025; }
+  button.active:hover { background: #b3261e; }
+  .status {
+    margin-top: 10px;
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+  }
+  .presets {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .presets button {
+    width: auto;
+    flex: 1;
+    padding: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #e8eaed;
+    color: #333;
+  }
+  .presets button:hover { background: #d2d5d9; }
+</style>
+</head>
+<body>
+  <h3>AirStream Video Delay</h3>
+
+  <div class="row">
+    <span>딜레이:</span>
+    <input type="number" id="delay" value="5" min="0" max="30" step="0.5">
+    <span class="unit">초</span>
+  </div>
+
+  <div class="presets">
+    <button onclick="setDelay(3)">3s</button>
+    <button onclick="setDelay(5)">5s</button>
+    <button onclick="setDelay(7)">7s</button>
+    <button onclick="setDelay(10)">10s</button>
+  </div>
+
+  <button id="toggle">딜레이 적용</button>
+  <div class="status" id="status">YouTube 페이지에서 사용하세요</div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

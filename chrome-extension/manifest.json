@@ -1,0 +1,18 @@
+{
+  "manifest_version": 3,
+  "name": "AirStream Video Delay",
+  "version": "1.0",
+  "description": "Delay YouTube video playback to sync with AirStream audio",
+  "permissions": ["activeTab", "storage"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/*", "*://m.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
