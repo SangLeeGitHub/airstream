@@ -15,7 +15,7 @@ Windows PC                          iPhone/iPad/Android
 
 ## Features
 
-- No iOS app required (works in Safari browser)
+- No app required (works in Safari, Chrome, and other browsers)
 - WASAPI Loopback capture (works even when PC is muted)
 - Real-time MP3 128kbps streaming
 - iOS background/lock screen playback support

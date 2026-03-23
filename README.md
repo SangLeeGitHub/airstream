@@ -15,7 +15,7 @@ Windows PC                          iPhone/iPad/Android
 
 ## 특징
 
-- iOS 앱 설치 불필요 (Safari 브라우저만 사용)
+- 앱 설치 불필요 (Safari, Chrome 등 브라우저만 사용)
 - WASAPI Loopback 캡처 (PC 음소거 상태에서도 동작)
 - MP3 128kbps 실시간 스트리밍
 - iOS 백그라운드/잠금화면 재생 지원
