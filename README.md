@@ -1,5 +1,7 @@
 # AirStream
 
+[English](README.en.md)
+
 Windows PC의 시스템 오디오를 WiFi를 통해 iPhone/iPad/Android 등의 브라우저로 스트리밍합니다.
 AirPods 등 Bluetooth 오디오 장치에서 재생 가능합니다.
 Safari, Chrome 등 주요 브라우저를 지원합니다.
