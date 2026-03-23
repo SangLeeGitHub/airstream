@@ -1,13 +1,14 @@
 # AirStream
 
-Windows PC의 시스템 오디오를 WiFi를 통해 iPhone/iPad의 Safari 브라우저로 스트리밍합니다.
+Windows PC의 시스템 오디오를 WiFi를 통해 iPhone/iPad/Android 등의 브라우저로 스트리밍합니다.
 AirPods 등 Bluetooth 오디오 장치에서 재생 가능합니다.
+Safari, Chrome 등 주요 브라우저를 지원합니다.
 
 ```
-Windows PC                          iPhone/iPad
-[시스템 오디오] → [WASAPI Loopback]     Safari 브라우저
+Windows PC                          iPhone/iPad/Android
+[시스템 오디오] → [WASAPI Loopback]     Safari / Chrome 등
        → [MP3 인코딩] → HTTP ────→  <audio> 태그 재생
-                                      → AirPods
+                                      → AirPods / Bluetooth
 ```
 
 ## 특징
